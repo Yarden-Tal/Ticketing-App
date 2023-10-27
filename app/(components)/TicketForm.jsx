@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 const TicketForm = () => {
+  const router = useRouter();
+
   const initialData = {
     title: "",
     desc: "",
@@ -23,8 +25,21 @@ const TicketForm = () => {
     }));
   };
 
-  const handleSubmit = () => {
-    console.log("SUBMITTED");
+  const handleSubmit = async e => {
+    e.preventDefault();
+    const res = await fetch("/api/Tickets", {
+      method: "POST",
+      body: JSON.stringify({ formData }),
+      "content-type": "application/json",
+    });
+
+    if (!res.ok) {
+      console.error(res.status);
+      throw new Error("Failed to create ticket");
+    }
+
+    router.refresh();
+    router.push("/");
   };
 
   const [formData, setFormData] = useState(initialData);
@@ -105,7 +120,7 @@ const TicketForm = () => {
           <option value="started">Started</option>
           <option value="done">Done</option>
         </select>
-        <input type="submit" className="btn" value="Create Ticket" />
+        <input type="submit" className="btn max-w-xs" value="Create Ticket" />
       </form>
     </div>
   );
