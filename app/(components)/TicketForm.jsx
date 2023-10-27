@@ -13,6 +13,7 @@ const TicketForm = () => {
     progress: 0,
     status: "not started",
     category: "Hardware Problem",
+    time: new Date().toLocaleString(),
   };
 
   const handleChange = e => {
