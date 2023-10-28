@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
-const TicketForm = () => {
+const TicketForm = ({ ticket }) => {
+  const isEditMode = ticket._id === "new" ? false : true;
   const router = useRouter();
 
   const initialData = {
@@ -26,8 +27,20 @@ const TicketForm = () => {
     }));
   };
 
-  const handleSubmit = async e => {
-    e.preventDefault();
+  const updateTicket = async () => {
+    const res = await fetch(`/api/Tickets/${ticket._id}`, {
+      method: "PUT",
+      body: JSON.stringify({ formData }),
+      "content-type": "application/json",
+    });
+
+    if (!res.ok) {
+      console.error(res.status);
+      throw new Error("Failed to update ticket");
+    }
+  };
+
+  const createTicket = async () => {
     const res = await fetch("/api/Tickets", {
       method: "POST",
       body: JSON.stringify({ formData }),
@@ -38,10 +51,24 @@ const TicketForm = () => {
       console.error(res.status);
       throw new Error("Failed to create ticket");
     }
+  };
 
+  const handleSubmit = async e => {
+    e.preventDefault();
+    if (isEditMode) updateTicket();
+    else createTicket();
     router.refresh();
     router.push("/");
   };
+
+  if (isEditMode) {
+    initialData["title"] = ticket.title;
+    initialData["desc"] = ticket.desc;
+    initialData["priority"] = ticket.priority;
+    initialData["progress"] = ticket.progress;
+    initialData["status"] = ticket.status;
+    initialData["category"] = ticket.category;
+  }
 
   const [formData, setFormData] = useState(initialData);
 
@@ -52,7 +79,7 @@ const TicketForm = () => {
         method="POST"
         onSubmit={handleSubmit}
       >
-        <h3>Create Ticket</h3>
+        <h3>{isEditMode ? "Update Ticket" : "Create Ticket"}</h3>
         <label htmlFor="title">Title</label>
         <input
           id="title"
@@ -121,7 +148,11 @@ const TicketForm = () => {
           <option value="started">Started</option>
           <option value="done">Done</option>
         </select>
-        <input type="submit" className="btn max-w-xs" value="Create Ticket" />
+        <input
+          type="submit"
+          className="btn max-w-xs"
+          value={isEditMode ? "Update Ticket" : "Create Ticket"}
+        />
       </form>
     </div>
   );
